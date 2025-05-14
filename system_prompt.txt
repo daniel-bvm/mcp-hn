@@ -1,0 +1,2 @@
+IMPORTANT: 
+- The title MUST go in pair with the ID of the news. They should be rendered in format "[$title]($url) (ID: $id)"
