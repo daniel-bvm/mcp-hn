@@ -5,8 +5,23 @@ BASE_API_URL = "http://hn.algolia.com/api/v1"
 DEFAULT_NUM_STORIES = 10
 
 # TODO(maybe): Update this to be user/claude configurable
-DEFAULT_NUM_COMMENTS = 10
+DEFAULT_NUM_COMMENTS = 6
 DEFAULT_COMMENT_DEPTH = 2
+
+CACHE_FILE = 'hn-cache.json'
+import json
+import os
+
+def _load_cache():
+    try:
+        with open(CACHE_FILE, 'r') as f:
+                return json.load(f)
+    except (json.JSONDecodeError, FileNotFoundError):
+        return {}
+
+def _save_cache(cache: Dict[str, Any]):
+    with open(CACHE_FILE, 'w') as f:
+        json.dump(cache, f, indent=4)
 
 def _validate_comments_is_list_of_dicts(comments: List[Any]) -> bool:
     """
@@ -66,22 +81,35 @@ def _format_story_details(story: Union[Dict, int], basic: bool = True) -> Dict:
     """
     if isinstance(story, int):
         story = _get_story_info(story)
+        
+    cache = _load_cache()
+
     output = {
         "id": story["story_id"],
         "author": story["author"],
     }
+    
     if "title" in story:
         output["title"] = story["title"]
+
     if "points" in story:
         output["points"] = story["points"]
+
     if "url" in story:
         output["url"] = story["url"]
+        cache[story['url']] = story["story_id"]
+
+    _save_cache(cache)
+
     if not basic:
         if _validate_comments_is_list_of_dicts(story["children"]):
             story = _get_story_info(story["story_id"])
+
         output["comments"] = [
-            _format_comment_details(child) for child in story["children"]
+            _format_comment_details(child)
+            for child in story["children"]
         ]
+
     return output
 
 def _format_comment_details(comment: Dict, depth: int = DEFAULT_COMMENT_DEPTH, num_comments: int = DEFAULT_NUM_COMMENTS) -> Dict:
@@ -140,6 +168,7 @@ def get_stories(story_type: str, num_stories: int = DEFAULT_NUM_STORIES):
         ValueError: If story_type is not one of the valid options
         requests.exceptions.RequestException: If the API request fails
     """
+
     story_type = story_type.lower().strip()
     if story_type not in ["top", "new", "ask_hn", "show_hn"]:
         raise ValueError("story_type must be one of: top, new, ask_hn, show_hn")
@@ -189,12 +218,12 @@ def search_stories(query: str, num_results: int = DEFAULT_NUM_STORIES, search_by
     response.raise_for_status()
     return [_format_story_details(story) for story in response.json()["hits"]]
 
-def get_story_info(story_id: int) -> Dict:
+def get_story_info(url: str) -> Dict:
     """
     Fetches detailed information about a specific story including comments.
 
     Args:
-        story_id: The ID of the story to fetch
+        url: The url of the story to fetch
 
     Returns:
         Dict containing full story details:
@@ -210,7 +239,13 @@ def get_story_info(story_id: int) -> Dict:
     Raises:
         requests.exceptions.RequestException: If the API request fails
     """
-    story = _get_story_info(story_id)
+
+    cache = _load_cache()
+
+    if  url not in cache:
+        return "Story not found. Please provide a valid story url."
+    
+    story = _get_story_info(cache[url])
     return _format_story_details(story, basic=False)
 
 def _get_user_stories(user_name: str, num_stories: int = DEFAULT_NUM_STORIES) -> List[Dict]:

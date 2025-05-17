@@ -18,7 +18,7 @@ async def handle_list_tools() -> list[types.Tool]:
     return [
         types.Tool(
             name="get_stories",
-            description="Get stories from Hacker News. The options are `top`, `new`, `ask_hn`, `show_hn` for types of stories. This doesn't include the comments. Use `get_story_info` to get the comments.",
+            description="Get stories from Hacker News",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -53,13 +53,13 @@ async def handle_list_tools() -> list[types.Tool]:
         ),
         types.Tool(
             name="search_stories",
-            description="Search stories from Hacker News. It is generally recommended to use simpler queries to get a broader set of results (less than 5 words). Very targetted queries may not return any results.",
+            description="Search stories from Hacker News.",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "Search query",
+                        "description": "Search query. It is generally recommended to use simpler queries to get a broader set of results (less than 5 words)",
                     },
                     "search_by_date": {
                         "type": "boolean",
@@ -74,14 +74,14 @@ async def handle_list_tools() -> list[types.Tool]:
             },
         ),
         types.Tool(
-            name="get_story_info",
-            description="Get detailed story info from Hacker News, including the comments",
+            name="fetch",
+            description="fetch information from an URL",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "story_id": {
-                        "type": "integer",
-                        "description": "Story ID",
+                    "url": {
+                        "type": "string",
+                        "description": "url to the story",
                     },
                 },
             },
@@ -106,9 +106,9 @@ async def handle_call_tool(
         num_results = arguments.get("num_results", DEFAULT_NUM_STORIES)
         output = json.dumps(hn.search_stories(query, num_results, search_by_date), indent=2)
         return [types.TextContent(type="text", text=output)]
-    elif name == "get_story_info":
-        story_id = int(arguments.get("story_id"))
-        output = json.dumps(hn.get_story_info(story_id), indent=2)
+    elif name == "fetch":
+        url = arguments.get("url")
+        output = json.dumps(hn.get_story_info(url), indent=2)
         return [types.TextContent(type="text", text=output)]
     elif name == "get_user_info":
         user_name = arguments.get("user_name")
