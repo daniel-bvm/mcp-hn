@@ -20,7 +20,9 @@ def _validate_comments_is_list_of_dicts(comments: List[Any]) -> bool:
 
     This is used to determine if we need to fetch the full story info to get comment details.
     """
-    return not isinstance(comments[0], int)
+
+    # safety first
+    return isinstance(comments, list) and len(comments) > 0 and not isinstance(comments[0], int)
 
 def _get_story_info(story_id: int) -> Dict:
     """
