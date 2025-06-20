@@ -9,6 +9,24 @@ DEFAULT_COMMENT_DEPTH = 2
 def _validate_comments_is_list_of_dicts(comments: List[Any]) -> bool:
     return isinstance(comments, list) and len(comments) > 0 and not isinstance(comments[0], int)
 
+def prune_data(d: Union[Dict, List, Any], list_limit: int=10, str_len_limit: int=1024) -> Union[Dict, List, Any]:
+    if isinstance(d, list):
+        return [
+            prune_data(item, list_limit, str_len_limit) 
+            for item in d[:list_limit]
+        ]
+        
+    if isinstance(d, dict):
+        return {
+            k: prune_data(v, list_limit, str_len_limit) 
+            for k, v in d.items()
+        }
+
+    if isinstance(d, str):
+        return d[:str_len_limit]
+
+    return d
+
 def _get_story_info(story_id: int) -> Dict:
     url = f"{BASE_API_URL}/items/{story_id}"
     response = requests.get(url)
@@ -85,7 +103,7 @@ def search_stories(query: str, num_results: int = DEFAULT_NUM_STORIES, search_by
 
 def get_story_info(story_id: int) -> Dict:
     story = _get_story_info(story_id)
-    return _format_story_details(story, basic=False)
+    return prune_data(_format_story_details(story, basic=False), list_limit=DEFAULT_NUM_COMMENTS, str_len_limit=1024)
 
 def _get_user_stories(user_name: str, num_stories: int = DEFAULT_NUM_STORIES) -> List[Dict]:
     url = f"{BASE_API_URL}/search?tags=author_{user_name},story&hitsPerPage={num_stories}"

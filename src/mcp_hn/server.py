@@ -74,14 +74,14 @@ async def handle_list_tools() -> list[types.Tool]:
             },
         ),
         types.Tool(
-            name="fetch",
-            description="fetch information from an URL",
+            name="get_story_info",
+            description="Get detailed information about a specific story from Hacker News",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "url": {
+                    "id": {
                         "type": "string",
-                        "description": "url to the story",
+                        "description": "id of the story",
                     },
                 },
             },
@@ -106,9 +106,9 @@ async def handle_call_tool(
         num_results = arguments.get("num_results", DEFAULT_NUM_STORIES)
         output = json.dumps(hn.search_stories(query, num_results, search_by_date), indent=2)
         return [types.TextContent(type="text", text=output)]
-    elif name == "fetch":
-        url = arguments.get("url")
-        output = json.dumps(hn.get_story_info(url), indent=2)
+    elif name == "get_story_info":
+        id = arguments.get("id")
+        output = json.dumps(hn.get_story_info(id), indent=2)
         return [types.TextContent(type="text", text=output)]
     elif name == "get_user_info":
         user_name = arguments.get("user_name")
