@@ -1,4 +1,3 @@
 .python-version
-*.json
 src/mcp_hn/py.typed
 src/mcp_hn/__pycache__/
