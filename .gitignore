@@ -3,3 +3,6 @@ src/mcp_hn/py.typed
 src/mcp_hn/__pycache__/
 scripts/
 messages.json
+.env
+curl_*.txt
+data/

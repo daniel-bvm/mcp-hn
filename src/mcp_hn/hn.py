@@ -12,13 +12,13 @@ def _validate_comments_is_list_of_dicts(comments: List[Any]) -> bool:
 def prune_data(d: Union[Dict, List, Any], list_limit: int=10, str_len_limit: int=1024) -> Union[Dict, List, Any]:
     if isinstance(d, list):
         return [
-            prune_data(item, list_limit, str_len_limit) 
+            prune_data(item, list_limit, str_len_limit)
             for item in d[:list_limit]
         ]
-        
+
     if isinstance(d, dict):
         return {
-            k: prune_data(v, list_limit, str_len_limit) 
+            k: prune_data(v, list_limit, str_len_limit)
             for k, v in d.items()
         }
 
@@ -36,12 +36,12 @@ def _get_story_info(story_id: int) -> Dict:
 def _format_story_details(story: Union[Dict, int], basic: bool = True) -> Dict:
     if isinstance(story, int):
         story = _get_story_info(story)
-        
+
     output = {
         "id": story["story_id"],
         "author": story["author"],
     }
-    
+
     if "title" in story:
         output["title"] = story["title"]
 
@@ -50,6 +50,12 @@ def _format_story_details(story: Union[Dict, int], basic: bool = True) -> Dict:
 
     if "url" in story:
         output["url"] = story["url"]
+
+    if "created_at" in story:
+        output["created_at"] = story["created_at"]
+
+    if "updated_at" in story:
+        output["updated_at"] = story["updated_at"]
 
     if not basic:
         if _validate_comments_is_list_of_dicts(story["children"]):
@@ -90,6 +96,8 @@ def get_stories(story_type: str, num_stories: int = DEFAULT_NUM_STORIES):
     url = f"{BASE_API_URL}/{params['endpoint']}?tags={params['tags']}&hitsPerPage={num_stories}"
     response = requests.get(url)
     response.raise_for_status()
+    with open("/storage/api_response.json", "w") as f:
+        f.write(response.text)
     return [_format_story_details(story) for story in response.json()["hits"]]
 
 def search_stories(query: str, num_results: int = DEFAULT_NUM_STORIES, search_by_date: bool = False):

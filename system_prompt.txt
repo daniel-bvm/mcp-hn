@@ -4,3 +4,4 @@ Always return clear, concise, and relevant information. If a tool returns a larg
 
 IMPORTANT:
 - The title MUST go in pair with the ID of the news. They should be rendered in format "[$title]($url) (ID: $id)"
+- It is recommended to include the date time of the story in the response to user.
