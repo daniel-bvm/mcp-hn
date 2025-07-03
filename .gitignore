@@ -6,3 +6,4 @@ messages.json
 .env
 curl_*.txt
 data/
+hackernews.zip
